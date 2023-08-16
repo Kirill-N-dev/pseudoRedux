@@ -1,13 +1,20 @@
-import { legacy_createStore as createStore } from "redux"; // !!! ЧТОБЫ ВСКОД НЕ РУГАЛСЯ
-import { taskReducer } from "./taskReducer";
-/* import { createStore } from "redux"; */
+import { createStore, compose, applyMiddleware } from "redux"; // !!! ЧТОБЫ ВСКОД НЕ РУГАЛСЯ
+import taskReducer from "./tasks";
+import { logger } from "./middleWare/logger";
 
-// Как понял, хранилище первичных стейтов
-const initState = [
-  { id: 1, title: "task 1", completed: false },
-  { id: 2, title: "task 2", completed: false },
-];
+const middlewareEnhancer = applyMiddleware(logger);
 
-export function initiateStore() {
-  return createStore(taskReducer, initState);
+console.log(taskReducer, 999);
+
+function configureStore() {
+  return createStore(
+    taskReducer
+    /* compose(
+      middlewareEnhancer,
+      window.__REDUX_DEVTOOLS_EXTENSION__ &&
+        window.__REDUX_DEVTOOLS_EXTENSION__()
+    ) */
+  );
 }
+
+export default configureStore;

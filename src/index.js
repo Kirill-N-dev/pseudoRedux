@@ -1,25 +1,27 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
-import * as actions from "./store/actions";
-import { initiateStore } from "./store/store";
-/* import { compose, pipe } from "lodash/fp"; */
+import configureStore from "./store/store";
+import { taskCompleted, titleChanged, taskDeleted } from "./store/tasks";
+import { pipe } from "lodash/fp";
 
 // Reducer
-const store = initiateStore();
+const store = configureStore();
+console.log(store.getState(), 666);
 
 // Метод для экшен 1
 const completeTask = (taskId) => {
-  store.dispatch(actions.taskCompleted(taskId));
+  store.dispatch(taskCompleted(taskId));
+  /* store.dispatch(() => {}); */
 };
 
 // Метод для экшен 2
 const changeTitle = (taskId) => {
-  store.dispatch(actions.titleChanged(taskId));
+  store.dispatch(titleChanged(taskId));
 };
 
 // Домашка, метод для экшен 3
 const deleteTask = (taskId) => {
-  store.dispatch(actions.taskDeleted(taskId));
+  store.dispatch(taskDeleted(taskId));
 };
 
 const App = (params) => {
@@ -28,7 +30,34 @@ const App = (params) => {
   useEffect(() => {
     store.subscribe(() => setState(store.getState()));
   }, []);
-  console.log(state);
+  /* console.log(state); */
+
+  // ЭКСПЕРИМЕНТЫ БЕЗ ИНЕТА DOWN
+  const x = 2;
+  const double = (num) => num * 2;
+  const square = (num) => num * num;
+  const divideOn2 = (num) => num / 2;
+
+  // Новая функция, которая, однако, выдаст ошибку при пайпинге
+  const divide = (num1, num2) =>
+    function (num2) {
+      console.log(num1, num2);
+      return num1 / num2; // ???
+    };
+  const result = pipe(double, square, divideOn2, divide(6)); // должно быть 0,5
+  const t = result(x);
+
+  /* console.log(typeof t, t, 666); */
+
+  // Мутации {} и сравнение ссылок вложенных {}
+  let obj1 = { id: { f: 555 } };
+  let obj2 = { id: { f: 555 } };
+
+  obj1 = { id: { ...obj1, ...obj1.id } };
+
+  console.log(obj1.id === obj2.id, obj1 === obj2, 555); // false false
+
+  // ЭКСПЕРИМЕНТЫ БЕЗ ИНЕТА UP
   return (
     <>
       <ul>
