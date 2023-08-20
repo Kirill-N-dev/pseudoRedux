@@ -1,20 +1,21 @@
-import { createStore, compose, applyMiddleware } from "redux"; // !!! ЧТОБЫ ВСКОД НЕ РУГАЛСЯ
 import taskReducer from "./tasks";
 import { logger } from "./middleWare/logger";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import errorReducer from "./errors";
 
-const middlewareEnhancer = applyMiddleware(logger);
+/* const middlewareEnhancer = applyMiddleware(logger, thunk); */
 
-console.log(taskReducer, 999);
+const rootReducer = combineReducers({
+  errors: errorReducer,
+  tasks: taskReducer,
+});
 
-function configureStore() {
-  return createStore(
-    taskReducer
-    /* compose(
-      middlewareEnhancer,
-      window.__REDUX_DEVTOOLS_EXTENSION__ &&
-        window.__REDUX_DEVTOOLS_EXTENSION__()
-    ) */
-  );
+function createStore() {
+  return configureStore({
+    reducer: rootReducer,
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
+    devTools: process.env.NODE_ENV !== "production",
+  });
 }
 
-export default configureStore;
+export default createStore;

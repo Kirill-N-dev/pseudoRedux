@@ -1,36 +1,63 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import configureStore from "./store/store";
-import { taskCompleted, titleChanged, taskDeleted } from "./store/tasks";
+import {
+  /*  taskCompleted, */
+  titleChanged,
+  taskDeleted,
+  completeTask,
+  loadTasks,
+  getTasks,
+  getTasksLoadingStatus,
+  createTask,
+} from "./store/tasks";
 import { pipe } from "lodash/fp";
+import { Provider, useSelector, useDispatch } from "react-redux";
+import { getError } from "./store/errors";
 
 // Reducer
 const store = configureStore();
-console.log(store.getState(), 666);
+/* console.log(store.getState(), 666); */
 
 // Метод для экшен 1
-const completeTask = (taskId) => {
-  store.dispatch(taskCompleted(taskId));
-  /* store.dispatch(() => {}); */
-};
-
-// Метод для экшен 2
-const changeTitle = (taskId) => {
-  store.dispatch(titleChanged(taskId));
-};
-
-// Домашка, метод для экшен 3
-const deleteTask = (taskId) => {
-  store.dispatch(taskDeleted(taskId));
-};
+/* const completeTask = (taskId) => {
+  store.dispatch((getState, dispatch) => {
+    store.dispatch(taskCompleted(taskId));
+    console.log(getState, dispatch, 888);
+  });
+}; */
 
 const App = (params) => {
-  const [state, setState] = useState(store.getState());
+  /* const [state, setState] = useState(store.getState()); */
+  const state = useSelector(getTasks());
+  console.log(state, 555); // ПРОВЕРКА СТЕЙТА, ПО КОТОРМОУ ИТЕРАЦИЯ, ДЛЯ ДОМАШКИ НАДО ЗАПУШИТЬ
+  // loader
+  const isLoading = useSelector(getTasksLoadingStatus());
+  // error listener
+  const error = useSelector(getError());
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    store.subscribe(() => setState(store.getState()));
+    dispatch(loadTasks());
+    /* store.subscribe(() => setState(store.getState())); */
   }, []);
   /* console.log(state); */
+
+  // Метод для экшен 2 (ЭТОТ КУСОК БЫЛ ВНЕ APP, МОЖЕТ ПОТОМУ БЫЛ БАГ)
+  const changeTitle = (taskId) => {
+    dispatch(titleChanged(taskId));
+  };
+
+  // Домашка, метод для экшен 3 (ЭТОТ КУСОК БЫЛ ВНЕ APP, МОЖЕТ ПОТОМУ БЫЛ БАГ)
+  const deleteTask = (taskId) => {
+    dispatch(taskDeleted(taskId));
+  };
+
+  // Домашка, метод для post запроса, НЕ ПОНЯЛ, ПОЧЕМУ БЕЗ ВЫЗОВА ДИСПАТЧА НЕ РАБОТАЕТ!!!
+  const downloadTask = (taskId) => {
+    dispatch(createTask(taskId)); // createTask - экшн криетор, экшн(тайп, пейлоад)
+  };
 
   // ЭКСПЕРИМЕНТЫ БЕЗ ИНЕТА DOWN
   const x = 2;
@@ -41,29 +68,34 @@ const App = (params) => {
   // Новая функция, которая, однако, выдаст ошибку при пайпинге
   const divide = (num1, num2) =>
     function (num2) {
-      console.log(num1, num2);
+      /* console.log(num1, num2); */
       return num1 / num2; // ???
     };
-  const result = pipe(double, square, divideOn2, divide(6)); // должно быть 0,5
-  const t = result(x);
+  const result = pipe(double, square, divideOn2, divide(x)); // должно быть 0,5
+  /* const t = result(x); */
+  if (result === 5) console.log(result); // затычка
 
   /* console.log(typeof t, t, 666); */
 
   // Мутации {} и сравнение ссылок вложенных {}
-  let obj1 = { id: { f: 555 } };
-  let obj2 = { id: { f: 555 } };
+  /*  let obj1 = { id: { f: 555 } }; */
+  /* let obj2 = { id: { f: 555 } }; */
 
-  obj1 = { id: { ...obj1, ...obj1.id } };
+  /* obj1 = { id: { ...obj1, ...obj1.id } }; */
 
-  console.log(obj1.id === obj2.id, obj1 === obj2, 555); // false false
+  /*   console.log(obj1.id === obj2.id, obj1 === obj2, 555); */ // false false
 
   // ЭКСПЕРИМЕНТЫ БЕЗ ИНЕТА UP
+
+  if (isLoading) return <h1>Loading...</h1>;
+  if (error) return <h1>{error}</h1>;
+
   return (
     <>
       <ul>
         {state.map((el) => (
           <li key={el.id}>
-            <button onClick={() => completeTask(el.id)}>
+            <button onClick={() => dispatch(completeTask(el.id))}>
               Изменить completed
             </button>
             <button onClick={() => changeTitle(el.id)}>Change title</button>
@@ -80,6 +112,9 @@ const App = (params) => {
           </li>
         ))}
       </ul>
+      <button title="Домашка" onClick={() => downloadTask()}>
+        Некая кнопка
+      </button>
     </>
   );
 };
@@ -87,6 +122,8 @@ const App = (params) => {
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>
 );
